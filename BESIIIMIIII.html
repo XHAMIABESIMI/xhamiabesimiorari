@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xhamia Besimi - Dashbord</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --accent: #00d4ff;
+            --gold: #ffc107;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            font-family: 'Inter', sans-serif;
+            color: white;
+            overflow: hidden;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), 
+                        url('bg.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 4vh 5vw;
+            box-sizing: border-box;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 20px;
+        }
+
+        .mosque-info h1 { font-size: 3.5rem; margin: 0; font-weight: 700; letter-spacing: -1px; }
+
+        #live-clock {
+            font-size: 8rem;
+            font-weight: 700;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .prayer-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            margin-top: auto;
+            margin-bottom: 5vh;
+        }
+
+        .p-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 30px 15px;
+            border-radius: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .active-now {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: var(--accent);
+            transform: translateY(-10px);
+        }
+
+        .p-label { font-size: 1.5rem; opacity: 0.8; margin-bottom: 10px; text-transform: uppercase; }
+        .p-time { font-size: 3.5rem; font-weight: 700; }
+
+        /* Compte à rebours sous la carte active */
+        .countdown-badge {
+            display: none;
+            position: absolute;
+            bottom: -54px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            padding: 6px 14px;
+            white-space: nowrap;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .countdown-badge .badge-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .countdown-badge .badge-time {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .active-now .countdown-badge {
+            display: block;
+        }
+
+        .footer { display: flex; justify-content: space-between; font-size: 1.5rem; opacity: 0.6; margin-top: 60px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="mosque-info">
+                <h1>XHAMIA BESIMI</h1>
+                <p id="hijri-txt" style="font-size: 1.8rem;">...</p>
+            </div>
+        </div>
+
+        <div id="live-clock">00:00:00</div>
+
+        <div class="prayer-grid">
+            <div class="p-card" id="c-fajr">
+                <div class="p-label">Sabahu</div>
+                <div id="fajr" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-fajr">--:--:--</div>
+                </div>
+            </div>
+            <div class="p-card" id="c-shuruq">
+                <div class="p-label">Lindja</div>
+                <div id="shuruq" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-shuruq">--:--:--</div>
+                </div>
+            </div>
+            <div class="p-card" id="c-dhuhr">
+                <div class="p-label">Dreka</div>
+                <div id="dhuhr" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-dhuhr">--:--:--</div>
+                </div>
+            </div>
+            <div class="p-card" id="c-asr">
+                <div class="p-label">Ikindia</div>
+                <div id="asr" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-asr">--:--:--</div>
+                </div>
+            </div>
+            <div class="p-card" id="c-maghrib">
+                <div class="p-label">Akshami</div>
+                <div id="maghrib" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-maghrib">--:--:--</div>
+                </div>
+            </div>
+            <div class="p-card" id="c-isha">
+                <div class="p-label">Jacia</div>
+                <div id="isha" class="p-time">--:--</div>
+                <div class="countdown-badge">
+                    <div class="badge-label">NAMAZI I RADHËS PAS:</div>
+                    <div class="badge-time" id="cd-isha">--:--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span id="current-date">--.--.----</span>
+            <span>Route de Beaumont 9, 1700 Fribourg</span>
+        </div>
+    </div>
+
+    <script>
+        let prayerTimes = {};
+
+        const allCards = [
+            { id: 'c-fajr',    cdId: 'cd-fajr',    key: 'fajr' },
+            { id: 'c-shuruq',  cdId: 'cd-shuruq',  key: 'shuruq' },
+            { id: 'c-dhuhr',   cdId: 'cd-dhuhr',   key: 'dhuhr' },
+            { id: 'c-asr',     cdId: 'cd-asr',      key: 'asr' },
+            { id: 'c-maghrib', cdId: 'cd-maghrib',  key: 'maghrib' },
+            { id: 'c-isha',    cdId: 'cd-isha',     key: 'isha' }
+        ];
+
+        function updateUI() {
+            const now = new Date();
+            document.getElementById('live-clock').innerText = now.toLocaleTimeString('de-CH');
+            calculateRemaining(now);
+        }
+
+        function formatCountdown(diff) {
+            const hh = Math.floor(diff / 3600000);
+            const mm = Math.floor((diff % 3600000) / 60000);
+            const ss = Math.floor((diff % 60000) / 1000);
+            return `${hh}h ${mm}m ${ss}s`;
+        }
+
+        function calculateRemaining(now) {
+            if (!prayerTimes.fajr) return;
+
+            const times = allCards.map(c => ({ ...c, time: prayerTimes[c.key] }));
+            const currentTimeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+
+            // Trouver le prochain namaz
+            let nextIndex = times.findIndex(p => p.time > currentTimeStr);
+            if (nextIndex === -1) nextIndex = 0; // après Jacia → retour à Sabahu
+
+            // Retirer active-now de toutes les cartes
+            times.forEach(t => document.getElementById(t.id).classList.remove('active-now'));
+
+            // Activer la carte du prochain namaz
+            const next = times[nextIndex];
+            document.getElementById(next.id).classList.add('active-now');
+
+            // Calculer le compte à rebours
+            const [h, m] = next.time.split(':');
+            const target = new Date();
+            target.setHours(parseInt(h), parseInt(m), 0, 0);
+            if (target <= now) target.setDate(target.getDate() + 1);
+
+            const diff = target - now;
+            document.getElementById(next.cdId).innerText = formatCountdown(diff);
+        }
+
+        const FILE = 'SwissMosque_Temps de prières_Xhamia Besimi Fribourg-1700-FR_05.2026.csv';
+
+        Papa.parse(FILE, {
+            download: true, header: true, delimiter: ";",
+            complete: function(results) {
+                const now = new Date();
+                const todayStr = String(now.getDate()).padStart(2, '0') + "." + String(now.getMonth() + 1).padStart(2, '0') + "." + now.getFullYear();
+                const row = results.data.find(r => r.Date && r.Date.trim() === todayStr);
+
+                if (row) {
+                    prayerTimes = {
+                        fajr:    row['Début de Fajr'],
+                        shuruq:  row['Lever du soleil'],
+                        dhuhr:   row['Dhuhr'],
+                        asr:     row['Asr'],
+                        maghrib: row['Maghrib'],
+                        isha:    row['Isha']
+                    };
+                    document.getElementById('fajr').innerText    = prayerTimes.fajr;
+                    document.getElementById('shuruq').innerText  = prayerTimes.shuruq;
+                    document.getElementById('dhuhr').innerText   = prayerTimes.dhuhr;
+                    document.getElementById('asr').innerText     = prayerTimes.asr;
+                    document.getElementById('maghrib').innerText = prayerTimes.maghrib;
+                    document.getElementById('isha').innerText    = prayerTimes.isha;
+                    document.getElementById('hijri-txt').innerText = row['Hijri'];
+                    document.getElementById('current-date').innerText = todayStr;
+                }
+            }
+        });
+
+        setInterval(updateUI, 1000);
+    </script>
+</body>
+</html>
